@@ -1,0 +1,58 @@
+name: Publish archive
+
+# yamllint disable-line rule:truthy
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Publish archive
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "Set package name"
+        working-directory: ./custom_components
+        run: echo "package=$(ls -F | grep \/$ | sed -n "s/\///g;1p")" >> $GITHUB_ENV
+
+      - name: "Set variables"
+        working-directory: ./custom_components
+        run: |
+          echo "archive=${{ env.package }}.zip" >> $GITHUB_ENV
+          echo "basedir=$(pwd)/${{ env.package }}" >> $GITHUB_ENV
+
+      - name: "Adjust version number"
+        shell: bash
+        run: |
+          version="${{ github.event.release.tag_name }}"
+          version="${version,,}"
+          version="${version#v}"
+          python3 - "$version" "./custom_components/${{ env.package }}/manifest.json" <<'PY'
+          import json
+          import sys
+
+          version, path = sys.argv[1], sys.argv[2]
+          with open(path, encoding="utf-8") as handle:
+              manifest = json.load(handle)
+          manifest["version"] = version
+          with open(path, "w", encoding="utf-8") as handle:
+              json.dump(manifest, handle, indent=2)
+              handle.write("\n")
+          PY
+
+      - name: "Zip component dir"
+        run: zip -r "${{ env.archive }}" "custom_components/${{ env.package }}"
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./${{ env.archive }}
+          asset_name: ${{ env.archive }}
+          tag: ${{ github.event.release.tag_name }}
+          overwrite: true

@@ -6,3 +6,9 @@ repos:
         files: ^(custom_components|tests)/
       - id: ruff-format
         files: ^(custom_components|tests)/
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        files: ^custom_components/
+        additional_dependencies: [voluptuous]

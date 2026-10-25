@@ -3,12 +3,12 @@
     "step": {
       "user": {
         "title": "Matter Lock Identity",
-        "description": "Names people when a Matter door lock unlocks. People are discovered from the locks already paired in the Matter integration. You rename them here. Nothing about your home is stored in the integration itself."
+        "description": "Names the person who unlocks a Matter door lock. People come from the locks in the Matter integration. You set each name in Home Assistant."
       }
     },
     "abort": {
-      "single_instance_allowed": "Matter Lock Identity is already configured. Only one entry is needed.",
-      "matter_required": "Set up the Matter integration before adding Matter Lock Identity."
+      "single_instance_allowed": "Matter Lock Identity is already set up. One entry is enough.",
+      "matter_required": "Before you add Matter Lock Identity, set up the Matter integration."
     }
   },
   "entity": {

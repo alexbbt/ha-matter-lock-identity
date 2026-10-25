@@ -1,12 +1,22 @@
 ---
 name: Feature request
-about: An idea for the integration
-title: ""
-labels: enhancement
+about: Suggest a change
 ---
 
-## What you would like
+## The problem
 
-## What a lock sends today
+Write the task that you cannot do today.
 
-Describe the Matter event in general terms. Do not include PIN codes, user names, serial numbers, or network details.
+## The change you want
+
+Write what the integration must do.
+
+## Other solutions
+
+Write any other way to do the same task.
+
+## More detail
+
+Add logs or screenshots here.
+
+Do not include PIN codes, names, serial numbers, or network addresses. Those values identify your home.

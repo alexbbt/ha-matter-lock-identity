@@ -23,8 +23,49 @@ line-length = 88
 src = ["custom_components", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "G"]
-ignore = ["RUF012"]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "SIM",
+    "RUF",
+    "G",
+]
+ignore = [
+    "RUF012",  # mutable class attributes are the Home Assistant entity style
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.13"
+files = ["custom_components"]
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "chip.*",
+    "homeassistant.*",
+    "matter_server.*",
+    "voluptuous.*",
+]
+ignore_missing_imports = true
 
 [tool.ruff.lint.isort]
 known-first-party = ["custom_components"]

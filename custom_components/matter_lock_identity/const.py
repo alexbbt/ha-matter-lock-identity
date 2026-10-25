@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
+__version__ = "0.1.0"
+
 DOMAIN = "matter_lock_identity"
 HUB_ID = "hub"
 HUB_NAME = "Matter Lock Identity"

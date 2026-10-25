@@ -1,10 +1,41 @@
+# Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Tests and type checkers
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.venv/
-venv/
 .coverage
-.idea
+.coverage.*
+htmlcov/
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Home Assistant
+*.yaml.bak
+secrets.yaml

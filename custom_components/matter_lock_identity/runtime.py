@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -155,23 +155,24 @@ class IdentityRuntime:
             return
         if not isinstance(data, self._node_event_type):
             return
+        event = cast(Any, data)
         if (
-            data.cluster_id != DOOR_LOCK_CLUSTER_ID
-            or data.event_id != LOCK_OPERATION_EVENT_ID
+            event.cluster_id != DOOR_LOCK_CLUSTER_ID
+            or event.event_id != LOCK_OPERATION_EVENT_ID
         ):
             return
-        identity = identify(self.directory, data.node_id, data.data or {})
+        identity = identify(self.directory, event.node_id, event.data or {})
         if identity is None:
             return
-        self.ensure_lock(data.node_id, self._lock_names.get(data.node_id))
+        self.ensure_lock(event.node_id, self._lock_names.get(event.node_id))
         if identity.user_index is not None and identity.user_unique_id is not None:
-            self._unknown_until.pop((data.node_id, identity.user_index), None)
+            self._unknown_until.pop((event.node_id, identity.user_index), None)
         payload = self._payload(identity)
-        self._emit(data.node_id, payload)
+        self._emit(event.node_id, payload)
         if (
             identity.user_index is not None
             and identity.user_unique_id is None
-            and self._should_retry_unknown(data.node_id, identity.user_index)
+            and self._should_retry_unknown(event.node_id, identity.user_index)
         ):
             self._spawn(self.async_refresh())
 

@@ -24,3 +24,6 @@ jobs:
         run: |
           ruff check .
           ruff format --check .
+      - name: mypy
+        run: |
+          mypy custom_components

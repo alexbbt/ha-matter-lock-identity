@@ -11,7 +11,8 @@ from homeassistant.data_entry_flow import FlowResult
 from .const import DOMAIN, HUB_NAME
 
 
-class MatterLockIdentityConfigFlow(ConfigFlow, domain=DOMAIN):
+# domain= is provided by Home Assistant's ConfigFlow.
+class MatterLockIdentityConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle the one config entry for this integration."""
 
     VERSION = 1

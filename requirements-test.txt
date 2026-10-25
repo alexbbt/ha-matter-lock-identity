@@ -1,3 +1,6 @@
+# Testing and linting dependencies
 pytest>=8.3
 pytest-asyncio>=0.25
 ruff==0.17.2
+mypy>=1.18.2
+voluptuous>=0.15.2

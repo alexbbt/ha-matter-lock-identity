@@ -1,7 +1,6 @@
 {
   "domain": "matter_lock_identity",
   "name": "Matter Lock Identity",
-  "categories": ["security_safety.locks_access"],
   "codeowners": ["@alexbbt"],
   "config_flow": true,
   "dependencies": ["matter"],

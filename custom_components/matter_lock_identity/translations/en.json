@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Matter Lock Identity",
+        "description": "Names people when a Matter door lock unlocks. People are discovered from the locks already paired in the Matter integration. You rename them here. Nothing about your home is stored in the integration itself."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Matter Lock Identity is already configured. Only one entry is needed.",
+      "matter_required": "Set up the Matter integration before adding Matter Lock Identity."
+    }
+  },
+  "entity": {
+    "button": {
+      "refresh": {
+        "name": "Refresh users"
+      }
+    },
+    "event": {
+      "unlock": {
+        "name": "Unlock",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "unlocked": "Unlocked"
+            }
+          }
+        }
+      }
+    },
+    "sensor": {
+      "user": {
+        "name": "Lock user",
+        "state": {
+          "present": "Present",
+          "absent": "Absent"
+        }
+      }
+    }
+  }
+}

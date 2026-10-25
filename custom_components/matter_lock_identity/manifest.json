@@ -1,0 +1,14 @@
+{
+  "domain": "matter_lock_identity",
+  "name": "Matter Lock Identity",
+  "codeowners": ["@alexbbt"],
+  "config_flow": true,
+  "dependencies": ["matter"],
+  "documentation": "https://github.com/alexbbt/ha-matter-lock-identity",
+  "integration_type": "hub",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/alexbbt/ha-matter-lock-identity/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}

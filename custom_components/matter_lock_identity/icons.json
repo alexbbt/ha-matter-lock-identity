@@ -1,0 +1,19 @@
+{
+  "entity": {
+    "button": {
+      "refresh": {
+        "default": "mdi:account-sync"
+      }
+    },
+    "event": {
+      "unlock": {
+        "default": "mdi:lock-open-variant"
+      }
+    },
+    "sensor": {
+      "user": {
+        "default": "mdi:account-key"
+      }
+    }
+  }
+}

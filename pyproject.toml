@@ -1,0 +1,30 @@
+[project]
+name = "ha-matter-lock-identity"
+version = "0.1.0"
+description = "Name the person who unlocked a Matter door lock"
+readme = "README.md"
+requires-python = ">=3.13"
+license = "MIT"
+authors = [{ name = "Alexander Bell-Towne" }]
+
+[project.urls]
+Repository = "https://github.com/alexbbt/ha-matter-lock-identity"
+Issues = "https://github.com/alexbbt/ha-matter-lock-identity/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+src = ["custom_components", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "G"]
+ignore = ["RUF012"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["custom_components"]

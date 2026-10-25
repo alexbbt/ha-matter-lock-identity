@@ -1,0 +1,16 @@
+name: Run pre-commit Check
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+
+jobs:
+  pre-commit:
+    name: Pre-commit Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "3.13"
+      - uses: pre-commit/action@v3.0.1

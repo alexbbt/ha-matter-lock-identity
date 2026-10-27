@@ -33,6 +33,7 @@ from .const import (
     default_lock_name,
     user_entity_key,
 )
+from .device import lock_device_info
 from .directory import (
     IdentityEvent,
     SlotDirectory,
@@ -43,7 +44,7 @@ from .directory import (
     identify,
 )
 from .event import LockUnlockEvent
-from .sensor import LockUserSensor
+from .sensor import LockOperatorSensor, LockUserSensor
 
 AddEntities = Callable[[list[Any]], None]
 
@@ -61,8 +62,9 @@ class IdentityRuntime:
         self._lock_names: dict[int, str] = {}
         self._locks: dict[int, LockUnlockEvent] = {}
         self._node_event_type: type | None = None
+        self._operators: dict[int, LockOperatorSensor] = {}
         self._pending_events: list[LockUnlockEvent] = []
-        self._pending_sensors: list[LockUserSensor] = []
+        self._pending_sensors: list[LockUserSensor | LockOperatorSensor] = []
         self._refresh_again = False
         self._refresh_lock = asyncio.Lock()
         self._sensors: dict[int, LockUserSensor] = {}
@@ -95,6 +97,7 @@ class IdentityRuntime:
             self._client = _matter_client(self.hass)
         except Exception as err:
             raise ConfigEntryNotReady("Matter is not ready") from err
+        self._cleanup_legacy_lock_devices()
         self._unsubscribe = self._client.subscribe_events(
             self._on_matter_event,
             event_filter=EventType.NODE_EVENT,
@@ -177,28 +180,35 @@ class IdentityRuntime:
             self._spawn(self.async_refresh())
 
     def ensure_lock(self, node_id: int, name: str | None) -> None:
-        """Create the unlock event for a lock, once."""
+        """Create unlock and operator entities on the Matter lock device."""
         if isinstance(name, str) and name.strip():
             label = name.strip()
         else:
             label = default_lock_name(node_id)
-        entity = self._locks.get(node_id)
-        if entity is None:
-            entity = LockUnlockEvent(node_id, label)
-            self._locks[node_id] = entity
-            self._lock_names[node_id] = label
-            if self._add_events is not None:
-                self._add_events([entity])
-            else:
-                self._pending_events.append(entity)
-            return
-        if label == self._lock_names.get(node_id):
-            return
-        if self._lock_names.get(node_id) != default_lock_name(node_id):
-            return
         self._lock_names[node_id] = label
-        entity.update_lock_name(label)
-        self._rename_lock(node_id, label)
+        device_info = lock_device_info(self._client, node_id)
+
+        event = self._locks.get(node_id)
+        if event is None:
+            event = LockUnlockEvent(node_id, device_info)
+            self._locks[node_id] = event
+            if self._add_events is not None:
+                self._add_events([event])
+            else:
+                self._pending_events.append(event)
+        else:
+            event.set_device_info(device_info)
+
+        operator = self._operators.get(node_id)
+        if operator is None:
+            operator = LockOperatorSensor(node_id, device_info)
+            self._operators[node_id] = operator
+            if self._add_sensors is not None:
+                self._add_sensors([operator])
+            else:
+                self._pending_sensors.append(operator)
+        else:
+            operator.set_device_info(device_info)
 
     async def _on_interval(self, _now: object) -> None:
         await self.async_refresh()
@@ -307,6 +317,9 @@ class IdentityRuntime:
         entity = self._locks.get(node_id)
         if entity is not None and entity.hass is not None:
             entity.publish(payload)
+        operator = self._operators.get(node_id)
+        if operator is not None:
+            operator.publish(payload)
         self.hass.bus.async_fire(EVENT_UNLOCKED, payload)
         if payload["identified"]:
             LOGGER.info(
@@ -349,15 +362,19 @@ class IdentityRuntime:
             if key[0] == node_id and self.directory.unique_id_for(*key) is not None:
                 self._unknown_until.pop(key, None)
 
-    def _rename_lock(self, node_id: int, name: str) -> None:
-        entity = self._locks.get(node_id)
-        if entity is None or entity.hass is None:
-            return
+    def _cleanup_legacy_lock_devices(self) -> None:
+        """Remove empty lock devices left from before Matter device linking."""
         registry = dr.async_get(self.hass)
-        device = registry.async_get_device(identifiers={(DOMAIN, f"node-{node_id}")})
-        if device is None or device.name_by_user or device.name == name:
-            return
-        registry.async_update_device(device.id, name=name)
+        entity_registry = er.async_get(self.hass)
+        for device in list(registry.devices.values()):
+            if not any(
+                domain == DOMAIN and str(identifier).startswith("node-")
+                for domain, identifier in device.identifiers
+            ):
+                continue
+            if er.async_entries_for_device(entity_registry, device.id):
+                continue
+            registry.async_remove_device(device.id)
 
     def _spawn(self, coro: Any) -> None:
         task = self.hass.async_create_task(coro)

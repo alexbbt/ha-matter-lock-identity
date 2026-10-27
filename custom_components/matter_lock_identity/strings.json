@@ -36,6 +36,9 @@
           "present": "Present",
           "absent": "Absent"
         }
+      },
+      "operator": {
+        "name": "Operator"
       }
     }
   }

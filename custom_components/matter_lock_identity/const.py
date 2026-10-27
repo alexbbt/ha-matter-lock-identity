@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 DOMAIN = "matter_lock_identity"
 HUB_ID = "hub"
@@ -13,6 +13,7 @@ HUB_NAME = "Matter Lock Identity"
 LOGGER = logging.getLogger(__package__)
 
 EVENT_UNLOCKED = "matter_lock_identity_unlocked"
+UNKNOWN_OPERATOR = "Unknown"
 
 # Matter Door Lock cluster, LockOperation event, NumberOfTotalUsersSupported.
 DOOR_LOCK_CLUSTER_ID = 257
@@ -41,6 +42,11 @@ def user_entity_key(user_unique_id: int) -> str:
 def lock_entity_key(node_id: int) -> str:
     """Return the stable entity unique id for one lock's unlock event."""
     return f"unlock-{node_id}"
+
+
+def operator_entity_key(node_id: int) -> str:
+    """Return the stable entity unique id for one lock's operator sensor."""
+    return f"operator-{node_id}"
 
 
 def default_lock_name(node_id: int) -> str:

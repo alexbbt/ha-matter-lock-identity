@@ -38,13 +38,15 @@ The button below starts the setup flow for Matter Lock Identity. You can also go
 
 <a href="https://my.home-assistant.io/redirect/config_flow_start/?domain=matter_lock_identity" target="_blank"><img src="https://my.home-assistant.io/badges/config_flow_start.svg" alt="Open your Home Assistant instance and start setting up a new integration." /></a>
 
-There is no account and no field to fill. The integration reads locks from the Matter integration that is already running. Each person appears as a sensor on the Matter Lock Identity device.
+There is no account and no field to fill. The integration reads locks from the Matter integration that is already running. Each person appears as a sensor on the Matter Lock Identity device. Unlock and Operator entities live on the same Matter lock device as the lock.
 
 ## People and events
 
 Each person is one sensor. The state is `present` when that person has a slot on a lock. The state is `absent` when that person has no slot on any lock. The sensor remains after you remove the person from the locks. The name that you set remains with the sensor. Open the sensor to set the name.
 
-Each lock has one unlock event. The event fires on every unlock, including a repeat by the same person. The event state is the time of the unlock. A refresh reads the user table from each available lock. The refresh runs when the integration starts and every six hours. The Refresh users button starts a refresh immediately.
+Each Matter lock gets one Operator sensor. The state is the person who last unlocked that lock. The state is `Unknown` when the unlock had no person. History for that sensor is a list of names over time.
+
+Each Matter lock also gets one unlock event. The event fires on every unlock, including a repeat by the same person. The event state is the time of the unlock. A refresh reads the user table from each available lock. The refresh runs when the integration starts and every six hours. The Refresh users button starts a refresh immediately.
 
 If an unlock refers to a slot that is not in the map, that unlock has no person. The integration then starts a refresh. The next unlock of that slot includes the person. An unlock with no user index has no person. Many locks send no user index for an inside handle or a remote app. Use the user unique id or the sensor name in automations, because the slot number is different on each lock.
 
@@ -52,9 +54,10 @@ The unlock carries `user_name`, which is the sensor name after you rename it. It
 
 `identified` is true when a person was found. `lock_name` is the name that the lock reports. `node_id` is the Matter node id of the lock. `source_node` is the remote node when the lock sends one. An event that is not an unlock is ignored. The integration does not read PIN codes.
 
-Home Assistant builds the entity id from the name. After you rename the lock device to Side door and the person to Ada, the ids look like this:
+Home Assistant builds the entity id from the name. After you rename the person to Ada, the ids look like this:
 
 - `sensor.lock_user_1001`
+- `sensor.side_door_operator`
 - `event.side_door_unlock`
 - `button.matter_lock_identity_refresh_users`
 

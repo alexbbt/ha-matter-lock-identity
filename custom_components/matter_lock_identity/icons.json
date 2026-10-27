@@ -13,6 +13,9 @@
     "sensor": {
       "user": {
         "default": "mdi:account-key"
+      },
+      "operator": {
+        "default": "mdi:account-lock-open"
       }
     }
   }

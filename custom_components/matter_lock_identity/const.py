@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 DOMAIN = "matter_lock_identity"
 HUB_ID = "hub"
@@ -61,5 +61,17 @@ def is_legacy_lock_device(identifiers: set[tuple[str, ...]]) -> bool:
             continue
         domain, value = identifier[0], identifier[1]
         if domain == DOMAIN and str(value).startswith("node-"):
+            return True
+    return False
+
+
+def is_forked_matter_lock_device(identifiers: set[tuple[str, ...]]) -> bool:
+    """Return True when this device reused Matter identifiers under our entry.
+
+    Home Assistant 2026.8+ no longer merges devices across integrations, so
+    DeviceInfo with Matter identifiers creates an empty fork to remove.
+    """
+    for identifier in identifiers:
+        if len(identifier) >= 2 and identifier[0] == "matter":
             return True
     return False

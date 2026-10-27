@@ -21,7 +21,8 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.device_registry import DeviceEntry, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import UNKNOWN_OPERATOR, operator_entity_key, user_entity_key
@@ -91,13 +92,19 @@ class LockOperatorSensor(RestoreSensor):
     _attr_should_poll = False
     _attr_translation_key = "operator"
 
-    def __init__(self, node_id: int, device_info: DeviceInfo) -> None:
+    def __init__(
+        self,
+        node_id: int,
+        *,
+        device_entry: DeviceEntry | None = None,
+        device_info: DeviceInfo | None = None,
+    ) -> None:
         """Create the operator sensor for one lock."""
         self.node_id = node_id
-        self._attr_device_info = device_info
         self._attr_native_value = UNKNOWN_OPERATOR
         self._attr_unique_id = operator_entity_key(node_id)
         self._attr_extra_state_attributes = self._attributes({})
+        self.set_device_link(device_entry, device_info)
 
     async def async_added_to_hass(self) -> None:
         """Restore the last person after a restart."""
@@ -122,9 +129,23 @@ class LockOperatorSensor(RestoreSensor):
             "credential_index": attrs.get("credential_index"),
         }
 
-    def set_device_info(self, device_info: DeviceInfo) -> None:
-        """Attach to the Matter device when it becomes known."""
-        self._attr_device_info = device_info
+    def set_device_link(
+        self,
+        device_entry: DeviceEntry | None,
+        device_info: DeviceInfo | None = None,
+    ) -> None:
+        """Attach to the Matter device, or a local fallback device."""
+        self.device_entry = device_entry
+        self._attr_device_info = None if device_entry is not None else device_info
+        if self.hass is None or self.registry_entry is None:
+            return
+        if device_entry is None:
+            return
+        if self.registry_entry.device_id == device_entry.id:
+            return
+        er.async_get(self.hass).async_update_entity(
+            self.entity_id, device_id=device_entry.id
+        )
 
     def publish(self, payload: dict[str, Any]) -> None:
         """Record who unlocked, or Unknown when there is no person."""

@@ -31,10 +31,11 @@ from .const import (
     TOTAL_USERS_ATTRIBUTE_ID,
     UNKNOWN_SLOT_RETRY,
     default_lock_name,
+    is_forked_matter_lock_device,
     is_legacy_lock_device,
     user_entity_key,
 )
-from .device import lock_device_info
+from .device import fallback_lock_device_info, matter_lock_device
 from .directory import (
     IdentityEvent,
     SlotDirectory,
@@ -53,9 +54,10 @@ AddEntities = Callable[[list[Any]], None]
 class IdentityRuntime:
     """Slot cache, person entities, and the unlock hot path."""
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
         """Create a runtime that has not subscribed yet."""
         self.hass = hass
+        self.entry_id = entry_id
         self.directory = SlotDirectory()
         self._add_events: AddEntities | None = None
         self._add_sensors: AddEntities | None = None
@@ -98,7 +100,7 @@ class IdentityRuntime:
             self._client = _matter_client(self.hass)
         except Exception as err:
             raise ConfigEntryNotReady("Matter is not ready") from err
-        self._cleanup_legacy_lock_devices()
+        self._cleanup_stale_lock_devices()
         self._unsubscribe = self._client.subscribe_events(
             self._on_matter_event,
             event_filter=EventType.NODE_EVENT,
@@ -187,29 +189,36 @@ class IdentityRuntime:
         else:
             label = default_lock_name(node_id)
         self._lock_names[node_id] = label
-        device_info = lock_device_info(self._client, node_id)
+        device_entry = matter_lock_device(self.hass, self._client, node_id)
+        device_info = (
+            None if device_entry is not None else fallback_lock_device_info(node_id)
+        )
 
         event = self._locks.get(node_id)
         if event is None:
-            event = LockUnlockEvent(node_id, device_info)
+            event = LockUnlockEvent(
+                node_id, device_entry=device_entry, device_info=device_info
+            )
             self._locks[node_id] = event
             if self._add_events is not None:
                 self._add_events([event])
             else:
                 self._pending_events.append(event)
         else:
-            event.set_device_info(device_info)
+            event.set_device_link(device_entry, device_info)
 
         operator = self._operators.get(node_id)
         if operator is None:
-            operator = LockOperatorSensor(node_id, device_info)
+            operator = LockOperatorSensor(
+                node_id, device_entry=device_entry, device_info=device_info
+            )
             self._operators[node_id] = operator
             if self._add_sensors is not None:
                 self._add_sensors([operator])
             else:
                 self._pending_sensors.append(operator)
         else:
-            operator.set_device_info(device_info)
+            operator.set_device_link(device_entry, device_info)
 
     async def _on_interval(self, _now: object) -> None:
         await self.async_refresh()
@@ -250,6 +259,7 @@ class IdentityRuntime:
             self.directory.replace_node(node.node_id, merged)
             self._clear_resolved_unknowns(node.node_id)
         self._sync_users()
+        self._cleanup_stale_lock_devices()
         LOGGER.info(
             "Refreshed lock users: %s people on %s locks",
             len(self.directory.membership()),
@@ -363,12 +373,18 @@ class IdentityRuntime:
             if key[0] == node_id and self.directory.unique_id_for(*key) is not None:
                 self._unknown_until.pop(key, None)
 
-    def _cleanup_legacy_lock_devices(self) -> None:
-        """Remove empty lock devices left from before Matter device linking."""
+    def _cleanup_stale_lock_devices(self) -> None:
+        """Remove empty fallback and forked Matter lock devices we created."""
         registry = dr.async_get(self.hass)
         entity_registry = er.async_get(self.hass)
-        for device in registry.devices:
-            if not is_legacy_lock_device(device.identifiers):
+        for device in list(registry.devices.values()):
+            if device.config_entry_id != self.entry_id:
+                continue
+            identifiers = device.identifiers
+            if not (
+                is_legacy_lock_device(identifiers)
+                or is_forked_matter_lock_device(identifiers)
+            ):
                 continue
             if er.async_entries_for_device(entity_registry, device.id):
                 continue

@@ -28,7 +28,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     from .runtime import IdentityRuntime
 
     platforms = _platforms()
-    runtime = IdentityRuntime(hass)
+    runtime = IdentityRuntime(hass, entry.entry_id)
     entry.runtime_data = runtime
     dr.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,

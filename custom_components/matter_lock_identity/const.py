@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 DOMAIN = "matter_lock_identity"
 HUB_ID = "hub"
@@ -52,3 +52,14 @@ def operator_entity_key(node_id: int) -> str:
 def default_lock_name(node_id: int) -> str:
     """Return the name used until the lock reports one."""
     return f"Matter lock {node_id}"
+
+
+def is_legacy_lock_device(identifiers: set[tuple[str, ...]]) -> bool:
+    """Return True when this device is an old per-lock identity device."""
+    for identifier in identifiers:
+        if len(identifier) < 2:
+            continue
+        domain, value = identifier[0], identifier[1]
+        if domain == DOMAIN and str(value).startswith("node-"):
+            return True
+    return False

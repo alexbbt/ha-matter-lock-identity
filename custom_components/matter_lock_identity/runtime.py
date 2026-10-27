@@ -31,6 +31,7 @@ from .const import (
     TOTAL_USERS_ATTRIBUTE_ID,
     UNKNOWN_SLOT_RETRY,
     default_lock_name,
+    is_legacy_lock_device,
     user_entity_key,
 )
 from .device import lock_device_info
@@ -366,11 +367,8 @@ class IdentityRuntime:
         """Remove empty lock devices left from before Matter device linking."""
         registry = dr.async_get(self.hass)
         entity_registry = er.async_get(self.hass)
-        for device in list(registry.devices.values()):
-            if not any(
-                domain == DOMAIN and str(identifier).startswith("node-")
-                for domain, identifier in device.identifiers
-            ):
+        for device in registry.devices:
+            if not is_legacy_lock_device(device.identifiers):
                 continue
             if er.async_entries_for_device(entity_registry, device.id):
                 continue

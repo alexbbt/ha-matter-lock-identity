@@ -38,7 +38,15 @@ The button below starts the setup flow for Matter Lock Identity. You can also go
 
 <a href="https://my.home-assistant.io/redirect/config_flow_start/?domain=matter_lock_identity" target="_blank"><img src="https://my.home-assistant.io/badges/config_flow_start.svg" alt="Open your Home Assistant instance and start setting up a new integration." /></a>
 
-There is no account and no field to fill. The integration reads locks from the Matter integration that is already running. Each person appears as a sensor on the Matter Lock Identity device. Unlock and Operator entities live on the same Matter lock device as the lock.
+There is no account and no field to fill. The integration reads locks from the Matter integration that is already running. Each person appears as a sensor on the Matter Lock Identity hub. Unlock and Operator entities live on the same Matter lock device as the lock.
+
+## Where entities live
+
+Matter Lock Identity adds two kinds of entities.
+
+The hub device is named Matter Lock Identity. Open Settings, then Devices & services, then Matter Lock Identity. You see that one hub. Person sensors and the Refresh users button live on the hub. Rename a person on that hub. The hub still lists those person sensors.
+
+Operator and Unlock do not live on the hub. Each Matter door lock gets one Operator sensor and one Unlock event. Those entities live on the Matter lock device, next to the normal Matter lock entities. Open the Matter lock device page to see Operator and Unlock. The Matter Lock Identity integration page does not list the locks as its own devices.
 
 ## People and events
 

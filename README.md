@@ -46,7 +46,15 @@ Matter Lock Identity adds two kinds of entities.
 
 The hub device is named Matter Lock Identity. Open Settings, then Devices & services, then Matter Lock Identity. You see that one hub. Person sensors and the Refresh users button live on the hub. Rename a person on that hub. The hub still lists those person sensors.
 
+![Matter Lock Identity hub with people and Refresh users](docs/images/hub.png)
+
 Operator and Unlock do not live on the hub. Each Matter door lock gets one Operator sensor and one Unlock event. Those entities live on the Matter lock device, next to the normal Matter lock entities. Open the Matter lock device page to see Operator and Unlock. The Matter Lock Identity integration page does not list the locks as its own devices.
+
+![Front door with Operator and Unlock](docs/images/front-door.png)
+
+![Side door with Operator and Unlock](docs/images/side-door.png)
+
+![Matter Lock Identity integration page](docs/images/integration.png)
 
 ## People and events
 
